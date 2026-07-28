@@ -1,8 +1,7 @@
 import React from 'react';
-import { MapPin, DollarSign, ExternalLink, Briefcase, Clock, Building, Monitor } from 'lucide-react';
+import { MapPin, DollarSign, ExternalLink, Briefcase, Clock, Building, Monitor, Bookmark } from 'lucide-react'; // Přidán import Bookmark
 
-const JobCard = ({ job }) => {
-  // Pomocná funkce pro bezpečné formátování platu
+const JobCard = ({ job, isSaved, onToggleSave }) => { // Přidány nové props
   const formatSalary = (min, max, currency) => {
     if (!min && !max) return 'Plat neuveden';
     const formatter = new Intl.NumberFormat('en-US', {
@@ -14,7 +13,6 @@ const JobCard = ({ job }) => {
     return formatter.format(min || max);
   };
 
-  // Formátování data
   const postDate = new Date(job.job_posted_at_datetime_utc).toLocaleDateString('cs-CZ', {
     day: 'numeric',
     month: 'short',
@@ -23,7 +21,7 @@ const JobCard = ({ job }) => {
 
   return (
     <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700 hover:border-emerald-500/50 transition-all duration-300 flex flex-col group shadow-lg hover:shadow-emerald-500/10">
-      {/* Hlavička s logem a názvem firmy */}
+      
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-lg bg-slate-700 flex items-center justify-center overflow-hidden shrink-0 border border-slate-600">
@@ -34,15 +32,27 @@ const JobCard = ({ job }) => {
             )}
           </div>
           <div>
-            <h3 className="text-xl font-bold text-white group-hover:text-emerald-400 transition-colors leading-tight">
+            <h3 className="text-xl font-bold text-white group-hover:text-emerald-400 transition-colors leading-tight pr-2">
               {job.job_title}
             </h3>
             <p className="text-slate-400 font-medium">{job.employer_name}</p>
           </div>
         </div>
+        
+        {/* Nové tlačítko pro uložení pozice */}
+        <button 
+          onClick={() => onToggleSave(job.job_id)}
+          className="p-2 rounded-full hover:bg-slate-700 transition-colors"
+          title={isSaved ? "Odebrat z uložených" : "Uložit pozici"}
+        >
+          <Bookmark 
+            className={`w-6 h-6 transition-colors ${
+              isSaved ? 'fill-emerald-500 text-emerald-500' : 'text-slate-400 hover:text-emerald-400'
+            }`} 
+          />
+        </button>
       </div>
 
-      {/* Tagy s metadaty */}
       <div className="flex flex-wrap gap-2 mb-4">
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-700/50 text-slate-300 border border-slate-600">
           <MapPin className="w-3.5 h-3.5" />
@@ -64,12 +74,10 @@ const JobCard = ({ job }) => {
         </span>
       </div>
 
-      {/* Popis pozice */}
       <p className="text-slate-400 text-sm line-clamp-3 mb-6 flex-grow leading-relaxed">
         {job.job_description}
       </p>
 
-      {/* Patička (Datum + Tlačítko) */}
       <div className="flex items-center justify-between pt-4 border-t border-slate-700/50 mt-auto">
         <div className="flex items-center gap-1.5 text-xs text-slate-500">
           <Clock className="w-3.5 h-3.5" />
