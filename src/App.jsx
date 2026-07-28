@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import jobsData from '../data/jobs.json';
+import jobsResponse from '../data/jobs.json';
 import JobCard from './components/JobCard';
 import { Search, Bookmark } from 'lucide-react'; // Přidána ikona Bookmark
 
 export default function App() {
+  const jobsData = jobsResponse.jobs || [];
+
   const [searchTerm, setSearchTerm] = useState('');
   const [remoteOnly, setRemoteOnly] = useState(false);
   const [showSavedOnly, setShowSavedOnly] = useState(false); // Nový stav pro zobrazení jen uložených
