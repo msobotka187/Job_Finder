@@ -1,27 +1,46 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import jobsData from '../data/jobs.json';
-import JobCard from './components/JobCard'; // Import naší nové komponenty
-import { Search } from 'lucide-react'; // Z App.jsx odstraňujeme ikony, které už nepotřebuje (jsou v JobCard)
+import JobCard from './components/JobCard';
+import { Search, Bookmark } from 'lucide-react'; // Přidána ikona Bookmark
 
-// --- HLAVNÍ KOMPONENTA: Dashboard ---
 export default function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [remoteOnly, setRemoteOnly] = useState(false);
+  const [showSavedOnly, setShowSavedOnly] = useState(false); // Nový stav pro zobrazení jen uložených
 
-  // Memoizace filtrování pro optimální výkon
+  // Inicializace stavu přímo z LocalStorage (spustí se jen jednou při načtení)
+  const [savedJobs, setSavedJobs] = useState(() => {
+    const saved = localStorage.getItem('ml-job-finder-saved');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // Ukládání do LocalStorage při každé změně savedJobs
+  useEffect(() => {
+    localStorage.setItem('ml-job-finder-saved', JSON.stringify(savedJobs));
+  }, [savedJobs]);
+
+  // Funkce pro přidání/odebrání z oblíbených
+  const toggleSaveJob = (jobId) => {
+    setSavedJobs(prev => 
+      prev.includes(jobId) 
+        ? prev.filter(id => id !== jobId) 
+        : [...prev, jobId]
+    );
+  };
+
   const filteredJobs = useMemo(() => {
     return jobsData.filter((job) => {
       const searchContent = `${job.job_title} ${job.employer_name} ${job.job_description}`.toLowerCase();
       const matchesSearch = searchContent.includes(searchTerm.toLowerCase());
       const matchesRemote = remoteOnly ? job.job_is_remote === true : true;
+      const matchesSaved = showSavedOnly ? savedJobs.includes(job.job_id) : true;
       
-      return matchesSearch && matchesRemote;
+      return matchesSearch && matchesRemote && matchesSaved;
     });
-  }, [searchTerm, remoteOnly]);
+  }, [searchTerm, remoteOnly, showSavedOnly, savedJobs]);
 
   return (
     <div className="min-h-screen bg-slate-950 font-sans selection:bg-emerald-500/30">
-      {/* Hlavička aplikace */}
       <header className="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -34,8 +53,21 @@ export default function App() {
               </p>
             </div>
 
-            {/* Ovládací panel (Filtry & Hledání) */}
             <div className="flex flex-col sm:flex-row items-center gap-4">
+              
+              {/* Nový filtr: Uložené pozice */}
+              <button
+                onClick={() => setShowSavedOnly(!showSavedOnly)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all border ${
+                  showSavedOnly 
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/50' 
+                    : 'bg-slate-800 text-slate-300 border-slate-700 hover:border-slate-500'
+                }`}
+              >
+                <Bookmark className={`w-4 h-4 ${showSavedOnly ? 'fill-emerald-400' : ''}`} />
+                Uložené ({savedJobs.length})
+              </button>
+
               <label className="flex items-center gap-2 cursor-pointer group">
                 <div className="relative">
                   <input 
@@ -69,32 +101,36 @@ export default function App() {
         </div>
       </header>
 
-      {/* Hlavní obsah - Grid pozic */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
-        {/* Výsledky počítadlo */}
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-white">
-            Nalezené pozice
+            {showSavedOnly ? 'Tvoje uložené pozice' : 'Nalezené pozice'}
           </h2>
           <span className="bg-slate-800 text-emerald-400 py-1 px-3 rounded-full text-sm font-bold border border-slate-700">
             {filteredJobs.length} výsledků
           </span>
         </div>
 
-        {/* Mřížka (Grid) pro karty */}
         {filteredJobs.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredJobs.map((job) => (
-              <JobCard key={job.job_id} job={job} />
+              <JobCard 
+                key={job.job_id} 
+                job={job} 
+                isSaved={savedJobs.includes(job.job_id)}
+                onToggleSave={toggleSaveJob}
+              />
             ))}
           </div>
         ) : (
-          /* Empty state */
           <div className="text-center py-20 bg-slate-800/50 rounded-2xl border border-slate-700 border-dashed">
-            <Search className="mx-auto h-12 w-12 text-slate-500 mb-4" />
-            <h3 className="text-xl font-medium text-white mb-2">Žádné pozice nenalezeny</h3>
-            <p className="text-slate-400">Zkus upravit parametry vyhledávání nebo vypnout Remote filtr.</p>
+            <Bookmark className="mx-auto h-12 w-12 text-slate-500 mb-4" />
+            <h3 className="text-xl font-medium text-white mb-2">Nic jsme nenašli</h3>
+            <p className="text-slate-400">
+              {showSavedOnly 
+                ? "Zatím nemáš uložené žádné pozice." 
+                : "Zkus upravit parametry vyhledávání."}
+            </p>
           </div>
         )}
       </main>
