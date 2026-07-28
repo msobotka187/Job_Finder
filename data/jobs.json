@@ -1,0 +1,32 @@
+[
+  {
+    "job_id": "1A2B3C",
+    "employer_name": "OpenAI",
+    "employer_logo": "https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg",
+    "job_title": "Machine Learning Engineer - NLP",
+    "job_city": "San Francisco",
+    "job_is_remote": true,
+    "job_employment_type": "FULLTIME",
+    "job_description": "We are looking for a Machine Learning Engineer to scale our language models. Experience with PyTorch and distributed training required.",
+    "job_apply_link": "https://openai.com/careers",
+    "job_min_salary": 160000,
+    "job_max_salary": 220000,
+    "job_salary_currency": "USD",
+    "job_posted_at_datetime_utc": "2026-07-25T10:00:00.000Z"
+  },
+  {
+    "job_id": "9X8Y7Z",
+    "employer_name": "Seznam.cz",
+    "employer_logo": null,
+    "job_title": "Junior Data Scientist",
+    "job_city": "Prague",
+    "job_is_remote": false,
+    "job_employment_type": "FULLTIME",
+    "job_description": "Hledáme nadšence do dat! Budete pracovat na vylepšování našeho vyhledávacího algoritmu. Znalost Pythonu a Scikit-Learn výhodou.",
+    "job_apply_link": "https://kariera.seznam.cz",
+    "job_min_salary": null,
+    "job_max_salary": null,
+    "job_salary_currency": null,
+    "job_posted_at_datetime_utc": "2026-07-28T08:30:00.000Z"
+  }
+]
