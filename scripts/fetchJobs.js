@@ -1,53 +1,51 @@
 import fs from 'fs';
 import path from 'path';
 
-// Získáme API klíč z .env souboru
+// Zkontrolujeme API klíč
 const RAPID_API_KEY = process.env.VITE_RAPIDAPI_KEY;
+if (!RAPID_API_KEY) {
+  console.error('❌ CHYBA: Chybí API klíč v .env souboru!');
+  process.exit(1);
+}
 
-// Hledáme ML pozice
+// v2 endpoint a query
 const QUERY = encodeURIComponent('Machine Learning Engineer');
-const URL = `https://jsearch.p.rapidapi.com/search?query=${QUERY}&num_pages=1`;
+const URL = `https://jsearch.p.rapidapi.com/search-v2?query=${QUERY}&num_pages=1&country=us`;
 
 async function fetchJobs() {
-  console.log('⏳ Stahuji ML pozice z JSearch API...');
-
-  if (!RAPID_API_KEY) {
-    console.error('❌ Chybí API klíč! Zkontroluj soubor .env');
-    return;
-  }
+  console.log('⏳ Stahuji ML pozice z JSearch v2 API...');
 
   try {
     const response = await fetch(URL, {
       method: 'GET',
       headers: {
-        'X-RapidAPI-Key': RAPID_API_KEY,
-        'X-RapidAPI-Host': 'jsearch.p.rapidapi.com'
+        'x-rapidapi-key': RAPID_API_KEY,
+        'x-rapidapi-host': 'jsearch.p.rapidapi.com',
+        'Content-Type': 'application/json'
       }
     });
 
     if (!response.ok) {
-      throw new Error(`Chyba API: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      throw new Error(`API chyba ${response.status}: ${errorText}`);
     }
 
     const json = await response.json();
-    const jobs = json.data;
+    // Ve v2 se data často skrývají pod klíčem 'data'
+    const jobs = json.data || [];
     
     console.log(`✅ Úspěšně staženo ${jobs.length} pozic.`);
 
-    // Ujistíme se, že složka "data" existuje
     const dirPath = path.join(process.cwd(), 'data');
-    if (!fs.existsSync(dirPath)){
-        fs.mkdirSync(dirPath, { recursive: true });
-    }
+    if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true });
 
-    // Uložení dat
     const filePath = path.join(dirPath, 'jobs.json');
     fs.writeFileSync(filePath, JSON.stringify(jobs, null, 2), 'utf-8');
     
     console.log(`💾 Data uložena do: ${filePath}`);
     
   } catch (error) {
-    console.error('❌ Nastala chyba při stahování dat:', error.message);
+    console.error('❌ Nastala chyba při volání v2 API:', error.message);
   }
 }
 
